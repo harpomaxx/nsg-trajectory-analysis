@@ -1,0 +1,102 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#!/usr/bin/env Rscript
+# repeated_actions_plots.R
+# Usage: Rscript repeated_actions_plots.R <input.csv> [output_prefix]
+#
+# Generates four publication-quality PNG plots from the CSV exported by
+# repeated_actions.py --csv.
+#
+# Input CSV columns:
+#   episode              - episode number
+#   outcome              - "win" or "loss"
+#   total_actions        - total actions in episode
+#   unique_actions       - distinct action types used
+#   num_repeated_actions - distinct actions executed more than once
+#   total_repetitions    - total number of extra (repeated) action executions
+#   repeat_percentage    - total_repetitions / total_actions * 100
+
+```{r}
+
+
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(dplyr)
+})
+```
+
+
+```{r}
+input_csv     <- "/tmp/caca/repeated_actions.csv"
+output_prefix <-"repeated_actions"
+df <- read_csv(input_csv)
+df
+```
+
+```{r}
+library(dplyr)
+
+df <- df %>%
+  mutate(repetition_rate = total_repetitions / total_actions)
+
+```
+
+
+```{r}
+pub_theme <- theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    axis.title = element_text(face = "bold"),
+    legend.position = "top",
+    legend.title = element_blank(),
+    strip.background = element_blank()
+  )
+
+pub_colors <- c("win" = "#1B9E77",  # teal (colorblind-safe)
+                "loss" = "#D95F02") # orange
+
+p1 <- ggplot(df, aes(x = outcome, y = repetition_rate, fill = outcome)) +
+  geom_boxplot(width = 0.5, alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(aes(color = outcome),
+              width = 0.12,
+              alpha = 0.5,
+              size = 2,
+              show.legend = FALSE) +
+  scale_fill_manual(values = pub_colors) +
+  scale_color_manual(values = pub_colors) +
+  labs(
+    title = "Repetition Rate by Episode Outcome",
+    x = "Episode Outcome",
+    y = "Repetition Rate"
+  ) +
+  pub_theme
+
+p1
+
+```
+
+```{r}
+p2 <- ggplot(df, aes(x = total_actions, y = repetition_rate, color = outcome)) +
+  geom_point(alpha = 0.6, size = 3) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 1) +
+  scale_color_manual(values = pub_colors) +
+  labs(
+    title = "Repetition Rate vs Total Actions",
+    x = "Total Actions per Episode",
+    y = "Repetition Rate"
+  ) +
+  pub_theme
+
+p2
+
+```
+```{r}
+ggsave("/tmp/caca/figure_repetition_rate_boxplot.pdf", p1,
+       width = 6, height = 5, dpi = 300)
+
+ggsave("/tmp/caca/figure_repetition_vs_length.pdf", p2,
+       width = 6, height = 5, dpi = 300)
+```
+

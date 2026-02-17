@@ -50,6 +50,37 @@ python3 investigate_end_condition.py <file.jsonl> --episodes 1 5 10
 python3 investigate_end_condition.py <file.jsonl> --all
 ```
 
+### 4. `repeated_actions.py` - Repeated Action Analyzer
+Detects and quantifies actions executed more than once within an episode.
+
+**Usage:**
+```bash
+python3 repeated_actions.py *.jsonl
+python3 repeated_actions.py *.jsonl --csv repeated_actions.csv   # export CSV for R plots
+python3 repeated_actions.py *.jsonl --json                        # JSON output
+```
+
+**Features:**
+- Counts distinct repeated actions and total extra executions per episode
+- Splits statistics by outcome (win/loss)
+- Exports a flat CSV for downstream plotting
+
+### 5. `repeated_actions_plots.R` / `plot_repeated_actions.rmd` - R Visualizations
+Two R-based plotting tools that consume the CSV produced by `repeated_actions.py --csv`.
+
+| File | Type | Output |
+|---|---|---|
+| `repeated_actions_plots.R` | Standalone script | 4 PNG files (300 dpi) |
+| `plot_repeated_actions.rmd` | R Notebook | Interactive HTML |
+
+**Usage (`repeated_actions_plots.R`):**
+```bash
+python3 repeated_actions.py *.jsonl --csv repeated_actions.csv
+Rscript repeated_actions_plots.R repeated_actions.csv [output_prefix]
+```
+
+Plots generated: boxplot of total repetitions by outcome, boxplot of distinct repeated actions by outcome, histogram of total repetitions faceted by outcome, scatter of total actions vs. repetitions coloured by outcome.
+
 ## Current Dataset Summary
 
 **Total Episodes: 35**
