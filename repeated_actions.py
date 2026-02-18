@@ -72,6 +72,10 @@ def analyze_repeated_actions(filepaths):
     win_episodes_total_reps = []
     loss_episodes_total_reps = []
 
+    all_episodes_rep_rates = []
+    win_episodes_rep_rates = []
+    loss_episodes_rep_rates = []
+
     episode_details = []
 
     # Read all episodes from all files
@@ -127,13 +131,16 @@ def analyze_repeated_actions(filepaths):
                     episode_details.append(episode_info)
                     all_episodes_repeats.append(num_repeated_actions)
                     all_episodes_total_reps.append(total_repetitions)
+                    all_episodes_rep_rates.append(repeat_percentage)
 
                     if is_win:
                         win_episodes_repeats.append(num_repeated_actions)
                         win_episodes_total_reps.append(total_repetitions)
+                        win_episodes_rep_rates.append(repeat_percentage)
                     else:
                         loss_episodes_repeats.append(num_repeated_actions)
                         loss_episodes_total_reps.append(total_repetitions)
+                        loss_episodes_rep_rates.append(repeat_percentage)
 
                 except json.JSONDecodeError as e:
                     print(f"Error parsing line {line_num} in {filepath}: {e}")
@@ -147,6 +154,9 @@ def analyze_repeated_actions(filepaths):
         'all_episodes_total_reps': all_episodes_total_reps,
         'win_episodes_total_reps': win_episodes_total_reps,
         'loss_episodes_total_reps': loss_episodes_total_reps,
+        'all_episodes_rep_rates': all_episodes_rep_rates,
+        'win_episodes_rep_rates': win_episodes_rep_rates,
+        'loss_episodes_rep_rates': loss_episodes_rep_rates,
         'episode_details': episode_details
     }
 
@@ -161,6 +171,10 @@ def print_summary(results):
     all_total_reps = results['all_episodes_total_reps']
     win_total_reps = results['win_episodes_total_reps']
     loss_total_reps = results['loss_episodes_total_reps']
+
+    all_rep_rates = results['all_episodes_rep_rates']
+    win_rep_rates = results['win_episodes_rep_rates']
+    loss_rep_rates = results['loss_episodes_rep_rates']
 
     details = results['episode_details']
 
@@ -183,16 +197,22 @@ def print_summary(results):
         avg_total_reps = sum(all_total_reps) / len(all_total_reps)
         min_total_reps = min(all_total_reps)
         max_total_reps = max(all_total_reps)
+        avg_rep_rate = sum(all_rep_rates) / len(all_rep_rates)
+        min_rep_rate = min(all_rep_rates)
+        max_rep_rate = max(all_rep_rates)
 
         # Episodes with no repeats
         no_repeats = sum(1 for x in all_repeats if x == 0)
 
         print(f"Avg Distinct Repeated Actions per Episode: {avg_repeats:.2f}")
         print(f"Avg Total Repetitions per Episode: {avg_total_reps:.2f}")
+        print(f"Avg Repetition Rate: {avg_rep_rate:.1f}%")
         print(f"Min Distinct Repeated Actions: {min_repeats}")
         print(f"Max Distinct Repeated Actions: {max_repeats}")
         print(f"Min Total Repetitions: {min_total_reps}")
         print(f"Max Total Repetitions: {max_total_reps}")
+        print(f"Min Repetition Rate: {min_rep_rate:.1f}%")
+        print(f"Max Repetition Rate: {max_rep_rate:.1f}%")
         print(f"Episodes with No Repeated Actions: {no_repeats} ({no_repeats/len(all_repeats)*100:.1f}%)")
 
     print("\n" + "-"*80)
@@ -206,14 +226,20 @@ def print_summary(results):
         avg_total_reps = sum(win_total_reps) / len(win_total_reps)
         min_total_reps = min(win_total_reps)
         max_total_reps = max(win_total_reps)
+        avg_rep_rate = sum(win_rep_rates) / len(win_rep_rates)
+        min_rep_rate = min(win_rep_rates)
+        max_rep_rate = max(win_rep_rates)
         no_repeats = sum(1 for x in win_repeats if x == 0)
 
         print(f"Avg Distinct Repeated Actions per Episode: {avg_repeats:.2f}")
         print(f"Avg Total Repetitions per Episode: {avg_total_reps:.2f}")
+        print(f"Avg Repetition Rate: {avg_rep_rate:.1f}%")
         print(f"Min Distinct Repeated Actions: {min_repeats}")
         print(f"Max Distinct Repeated Actions: {max_repeats}")
         print(f"Min Total Repetitions: {min_total_reps}")
         print(f"Max Total Repetitions: {max_total_reps}")
+        print(f"Min Repetition Rate: {min_rep_rate:.1f}%")
+        print(f"Max Repetition Rate: {max_rep_rate:.1f}%")
         print(f"Episodes with No Repeated Actions: {no_repeats} ({no_repeats/len(win_repeats)*100:.1f}%)")
 
     print("\n" + "-"*80)
@@ -227,14 +253,20 @@ def print_summary(results):
         avg_total_reps = sum(loss_total_reps) / len(loss_total_reps)
         min_total_reps = min(loss_total_reps)
         max_total_reps = max(loss_total_reps)
+        avg_rep_rate = sum(loss_rep_rates) / len(loss_rep_rates)
+        min_rep_rate = min(loss_rep_rates)
+        max_rep_rate = max(loss_rep_rates)
         no_repeats = sum(1 for x in loss_repeats if x == 0)
 
         print(f"Avg Distinct Repeated Actions per Episode: {avg_repeats:.2f}")
         print(f"Avg Total Repetitions per Episode: {avg_total_reps:.2f}")
+        print(f"Avg Repetition Rate: {avg_rep_rate:.1f}%")
         print(f"Min Distinct Repeated Actions: {min_repeats}")
         print(f"Max Distinct Repeated Actions: {max_repeats}")
         print(f"Min Total Repetitions: {min_total_reps}")
         print(f"Max Total Repetitions: {max_total_reps}")
+        print(f"Min Repetition Rate: {min_rep_rate:.1f}%")
+        print(f"Max Repetition Rate: {max_rep_rate:.1f}%")
         print(f"Episodes with No Repeated Actions: {no_repeats} ({no_repeats/len(loss_repeats)*100:.1f}%)")
 
     print("\n" + "="*80 + "\n")
@@ -456,17 +488,21 @@ def main():
 
     if args.json:
         import json as json_module
+        def _avg(lst): return sum(lst) / len(lst) if lst else 0
         output = {
             'summary': {
                 'total_episodes': len(results['all_episodes']),
                 'wins': len(results['win_episodes']),
                 'losses': len(results['loss_episodes']),
-                'all_avg_distinct_repeated': sum(results['all_episodes']) / len(results['all_episodes']) if results['all_episodes'] else 0,
-                'all_avg_total_reps': sum(results['all_episodes_total_reps']) / len(results['all_episodes_total_reps']) if results['all_episodes_total_reps'] else 0,
-                'win_avg_distinct_repeated': sum(results['win_episodes']) / len(results['win_episodes']) if results['win_episodes'] else 0,
-                'win_avg_total_reps': sum(results['win_episodes_total_reps']) / len(results['win_episodes_total_reps']) if results['win_episodes_total_reps'] else 0,
-                'loss_avg_distinct_repeated': sum(results['loss_episodes']) / len(results['loss_episodes']) if results['loss_episodes'] else 0,
-                'loss_avg_total_reps': sum(results['loss_episodes_total_reps']) / len(results['loss_episodes_total_reps']) if results['loss_episodes_total_reps'] else 0,
+                'all_avg_distinct_repeated': _avg(results['all_episodes']),
+                'all_avg_total_reps': _avg(results['all_episodes_total_reps']),
+                'all_avg_repetition_rate_pct': _avg(results['all_episodes_rep_rates']),
+                'win_avg_distinct_repeated': _avg(results['win_episodes']),
+                'win_avg_total_reps': _avg(results['win_episodes_total_reps']),
+                'win_avg_repetition_rate_pct': _avg(results['win_episodes_rep_rates']),
+                'loss_avg_distinct_repeated': _avg(results['loss_episodes']),
+                'loss_avg_total_reps': _avg(results['loss_episodes_total_reps']),
+                'loss_avg_repetition_rate_pct': _avg(results['loss_episodes_rep_rates']),
             },
             'episode_details': results['episode_details']
         }
